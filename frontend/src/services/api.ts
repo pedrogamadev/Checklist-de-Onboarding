@@ -40,3 +40,18 @@ export const deleteTask = async (id: number): Promise<void> => {
     throw new Error(message || "Erro ao excluir a task.");
   }
 };
+
+export const updateTask = async (
+  id: number,
+  data: Partial<Pick<Task, "title" | "done">>
+): Promise<Task> => {
+  const response = await fetch(`${apiUrl}/tasks/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  return handleResponse<Task>(response);
+};

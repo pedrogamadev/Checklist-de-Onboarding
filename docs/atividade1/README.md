@@ -5,23 +5,18 @@ Montar uma API simples com CRUD de tasks utilizando Node + Express, Prisma ORM e
 
 ## Passo a passo para rodar
 
-### 1) Subir o Postgres com Docker
-```bash
-docker-compose up -d
-```
-
-### 2) Instalar dependências
+### 1 Instalar dependências
 ```bash
 npm install
 ```
 
-### 3) Rodar migrations
+### 3 Rodar migrations
 ```bash
 npm run prisma:generate
 npm run prisma:migrate
 ```
 
-### 4) Iniciar o backend
+### 4 Iniciar o backend
 ```bash
 npm run dev
 ```
@@ -54,12 +49,8 @@ A API ficará disponível em: `http://localhost:3000`
 }
 ```
 
-## Testes no Insomnia/Postman
-- Foram realizados testes manuais no Insomnia/Postman para todas as rotas (GET, POST, PUT, DELETE).
-- Os testes confirmaram criação, atualização, listagem e exclusão de tasks.
-- A validação de título vazio retornou erro 400 conforme esperado.
+### Observações
+- Foi criado o ambiente de banco de dados através do programa SQL SHELL (psql) com o nome de "task_db"
 
-## Observações
-- As migrations do Prisma estão configuradas e funcionam via `npm run prisma:migrate`.
-- O banco Postgres persiste dados no volume `postgres_data` do Docker.
-- É possível usar clientes SQL como HeidiSQL ou DBeaver para visualizar a base.
+### Testes da API
+- A API foi testada utilizando o Postman, realizando as operações de listagem (GET), criação (POST), atualização (PUT) e exclusão (DELETE) de tasks. Todas as rotas retornaram os códigos HTTP esperados e os dados foram persistidos corretamente no banco PostgreSQL através do Prisma ORM.

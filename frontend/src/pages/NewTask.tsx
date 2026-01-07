@@ -30,7 +30,7 @@ const NewTask = () => {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Nova task</h2>
           <p className="text-sm text-slate-500">
@@ -47,27 +47,37 @@ const NewTask = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
       >
-        <label className="block text-sm font-medium text-slate-700" htmlFor="title">
-          Título
-        </label>
-        <input
-          id="title"
-          name="title"
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-900 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-400"
-          placeholder="Ex: Configurar e-mail corporativo"
-        />
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {loading ? "Salvando..." : "Salvar task"}
-        </button>
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-slate-700" htmlFor="title">
+            Título
+          </label>
+          <input
+            id="title"
+            name="title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-900 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-300"
+            placeholder="Ex: Configurar e-mail corporativo"
+          />
+          {error && <p className="text-sm text-red-600">{error}</p>}
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {loading ? "Salvando..." : "Salvar task"}
+          </button>
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+          >
+            Voltar
+          </Link>
+        </div>
       </form>
     </section>
   );

@@ -2,17 +2,52 @@ version: "3.9"
 
 services:
   postgres:
-    image: postgres:16
-    container_name: atividade1-postgres
+    image: postgres:16-alpine
+    container_name: atividade3-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: task_user
-      POSTGRES_PASSWORD: task_password
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: task_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U task_user -d task_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    container_name: atividade3-backend
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://task_user:postgres@postgres:5432/task_db?schema=public
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/usr/app
+      - /usr/app/node_modules
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: atividade3-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://backend:3000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/usr/app
+      - /usr/app/node_modules
 
 volumes:
   postgres_data:

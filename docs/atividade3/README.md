@@ -1,81 +1,102 @@
 # Atividade 3: Integração com Docker Compose
 
-Este documento descreve como configurar e rodar a aplicação integrando Backend, Frontend e Banco de Dados (Postgres) utilizando Docker Compose.
+Este documento detalha a implementação e execução da Atividade 3, que integra Backend, Frontend e Banco de Dados (Postgres) utilizando Docker Compose.
 
-## Pré-requisitos
+## 📋 Checklist de Conformidade (Requisitos)
 
-- Docker e Docker Compose instalados.
-- Node.js instalado (para execução sem Docker).
+- [x] **Docker Compose**: Orquestração de 3 serviços (frontend, backend, postgres).
+- [x] **Banco de Dados**: Postgres rodando na porta 5432 (externa 5433), com volume persistente.
+- [x] **Backend**: API Node.js/Express rodando na porta 3000, conectando ao Postgres.
+- [x] **Frontend**: React/Vite rodando na porta 5173, consumindo a API via Proxy.
+- [x] **Conectividade**: Frontend acessa Backend via `/api` (Proxy reverso no Docker).
+- [x] **Resiliência**: Backend aguarda o banco estar saudável (healthcheck).
+- [x] **Prisma**: Configurado com `binaryTargets` para Linux (Alpine) e migrações automáticas.
 
-## Estrutura de Pastas
+## 📂 Estrutura do Projeto
 
-- `backend/`: Código fonte do servidor (Node.js/Express/Prisma).
-- `frontend/`: Código fonte da interface (React/Vite).
-- `docker-compose.yml`: Orquestração dos containers.
+- `backend/`: API (Node.js + Express + Prisma).
+- `frontend/`: UI (React + Vite).
+- `docker-compose.yml`: Arquivo de orquestração.
+- `docs/`: Documentação.
 
-## Configure as Variáveis de Ambiente
+## 🛠️ Configuração e Execução
 
-### Backend (`backend/.env`)
+### 1. Pré-requisitos
 
-Crie ou edite o arquivo `backend/.env` com o seguinte conteúdo:
+- Docker Desktop instalado e rodando.
+- Git (para clonar/baixar o projeto).
+- *Opcional*: Node.js (apenas se for rodar fora do Docker).
 
-```env
-DATABASE_URL="postgresql://task_user:postgres@postgres:5432/task_db?schema=public"
-PORT=3000
-```
+### 2. Rodando com Docker Compose (Recomendado)
 
-> **Nota para execução sem Docker**: Se rodar localmente sem Docker, altere `postgres` para `localhost` na `DATABASE_URL`.
+O projeto está configurado para funcionar "out-of-the-box" com Docker.
 
-### Frontend (`frontend/.env`)
-
-Crie ou edite o arquivo `frontend/.env` com o seguinte conteúdo:
-
-```env
-VITE_API_URL=http://backend:3000
-```
-
-> **Nota**: Esta URL é utilizada internamente na rede do Docker. Para acessos via browser na máquina host sem proxy configurado, pode haver limitações de resolução de nome `backend`. Certifique-se de que a aplicação está preparada para proxy ou ajuste conforme necessário.
-
-## Executando com Docker Compose (Recomendado)
-
-1. Na raiz do projeto, execute:
+1. **Abra o terminal na raiz do projeto**.
+2. **Suba os containers**:
    ```bash
    docker compose up --build
    ```
+3. **Aguarde a inicialização**:
+   - O `postgres` iniciará primeiro.
+   - O `backend` aguardará o `postgres` estar saudável (status "healthy") para iniciar e rodar as migrações.
+   - O `frontend` iniciará por último.
 
-2. Aguarde os serviços iniciarem. O banco de dados (`postgres`) deve estar saudável antes do `backend` iniciar.
+### 3. Validando a Aplicação
 
-3. Acesse:
-   - **Frontend**: [http://localhost:5173](http://localhost:5173)
-   - **Backend**: [http://localhost:3000](http://localhost:3000) (API)
+#### Frontend (.env e Proxy)
+O frontend está configurado via `docker-compose.yml` para usar `VITE_API_URL=/api`. O Vite fará o proxy das requisições para `http://backend:3000`.
 
-Os serviços estão conectados pela rede interna do Docker:
-- O backend acessa o banco via host `postgres`.
-- O frontend está configurado para apontar para `http://backend:3000`.
+- **Acesse no navegador**: [http://localhost:5173](http://localhost:5173)
+- **Teste o Proxy (JSON)**: Acesse [http://localhost:5173/api/tasks](http://localhost:5173/api/tasks).
+  - Você deve ver uma resposta JSON (array vazio `[]` ou lista de tarefas), **não** um erro HTML ou "Unexpected token <".
 
-### Persistência de Dados
+#### Backend (API)
+O backend expõe a porta 3000 no host.
 
-Os dados do Postgres são persistidos no volume `postgres_data` (gerenciado pelo Docker). Isso garante que as tarefas criadas não sejam perdidas ao reiniciar os containers.
-Adicionalmente, as pastas `./backend` e `./frontend` estão mapeadas como volumes para permitir *Hot Reload* durante o desenvolvimento.
+- **Acesse**: [http://localhost:3000/tasks](http://localhost:3000/tasks)
+- **Teste com CURL**:
+  ```bash
+  # Criar tarefa
+  curl -X POST http://localhost:3000/tasks -H "Content-Type: application/json" -d "{\"title\": \"Teste Docker\", \"done\": false}"
 
-## Executando sem Docker (Manual)
+  # Listar tarefas
+  curl http://localhost:3000/tasks
+  ```
 
-Se preferir rodar manualmente, precisará de duas janelas de terminal e um banco Postgres rodando localmente.
+#### Banco de Dados (Postgres)
+O banco expõe a porta **5433** para o host (para não conflitar com um Postgres local na 5432).
 
-1. **Backend**:
-   ```bash
-   cd backend
-   npm install
-   # Ajuste o .env para usar localhost no banco de dados se necessário
-   npm run dev
-   ```
+- **Via Docker Exec**:
+  ```bash
+  docker exec -it atividade3-postgres psql -U task_user -d task_db -c 'SELECT * FROM "Task";'
+  ```
 
-2. **Frontend**:
-   ```bash
-   cd frontend
-   npm install
-   # Ajuste o .env para VITE_API_URL=http://localhost:3000
-   npm run dev
-   ```
+## ⚙️ Variáveis de Ambiente
 
-3. Acesse [http://localhost:5173](http://localhost:5173).
+O arquivo `docker-compose.yml` já injeta as variáveis necessárias para o ambiente Docker.
+
+- **Backend**:
+  - `DATABASE_URL`: Conecta ao host `postgres` interno.
+  - `PORT`: 3000.
+- **Frontend**:
+  - `VITE_API_URL`: Definido como `/api`. Isso instrui o código do frontend a fazer chamadas relativas, que são interceptadas pelo Proxy do Vite e encaminhadas ao backend.
+
+> **Importante**: Não use `http://backend:3000` no navegador. O navegador roda na sua máquina (Host) e não conhece o DNS interno do Docker. O Proxy resolve isso.
+
+## 🐛 Troubleshooting
+
+### 1. Erro "Unexpected token < in JSON at position 0" no Frontend
+- **Causa**: O frontend tentou acessar a API, mas recebeu HTML (provavelmente a página index.html do próprio Vite) em vez de JSON.
+- **Solução**: Verifique se a variável `VITE_API_URL` está correta. No Docker, deve ser `/api`. Se estiver rodando local sem Docker, deve ser `http://localhost:3000`. Certifique-se de que o backend está rodando e acessível.
+
+### 2. Erro "Prisma Client could not locate the Query Engine for runtime 'linux-musl'"
+- **Causa**: O `schema.prisma` não inclui o alvo binário para o Alpine Linux usado no Docker.
+- **Solução**: Verifique se o `schema.prisma` contém: `binaryTargets = ["native", "linux-musl"]`. (Já corrigido neste projeto).
+
+### 3. "ERR_NAME_NOT_RESOLVED" ao acessar `http://backend:3000` no browser
+- **Causa**: Você tentou acessar o endereço interno do container pelo navegador.
+- **Solução**: Use `http://localhost:3000` (porta mapeada) ou via proxy `http://localhost:5173/api/...`.
+
+### 4. Erros de Banco de Dados ou Migrations
+- **Verifique os logs**: `docker compose logs backend`
+- **Healthcheck**: Confirme se o postgres está saudável com `docker compose ps`.

@@ -19,6 +19,11 @@ export const getTasks = async (): Promise<Task[]> => {
   return handleResponse<Task[]>(response);
 };
 
+export const getTaskById = async (id: number): Promise<Task> => {
+  const response = await fetch(`${apiUrl}/tasks/${id}`);
+  return handleResponse<Task>(response);
+};
+
 export const createTask = async (title: string): Promise<Task> => {
   const response = await fetch(`${apiUrl}/tasks`, {
     method: "POST",

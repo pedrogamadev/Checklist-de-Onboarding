@@ -17,6 +17,21 @@ app.get("/tasks", async (_req, res) => {
   res.json(tasks);
 });
 
+app.get("/tasks/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    return res.status(400).json({ error: "ID inválido." });
+  }
+
+  const task = await prisma.task.findUnique({ where: { id } });
+
+  if (!task) {
+    return res.status(404).json({ error: "Task não encontrada." });
+  }
+
+  return res.json(task);
+});
+
 app.post("/tasks", async (req, res) => {
   const { title, done } = req.body as { title?: string; done?: boolean };
 

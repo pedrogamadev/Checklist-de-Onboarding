@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import TasksList from "./pages/TasksList";
+import TaskDetails from "./pages/TaskDetails";
 import NewTask from "./pages/NewTask";
 
 const App = () => {
@@ -26,6 +27,8 @@ const App = () => {
         <Routes>
           <Route path="/" element={<TasksList />} />
           <Route path="/new" element={<NewTask />} />
+          {/* New route for viewing a single task */}
+          <Route path="/task/:id" element={<TaskDetails />} />
         </Routes>
       </main>
     </div>
